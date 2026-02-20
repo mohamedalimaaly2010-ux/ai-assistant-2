@@ -32,31 +32,39 @@
     const sendBtn = document.getElementById('send-btn');
 
     function addMessage(text, sender) {
-      const msg = document.createElement('div');
-      msg.classList.add('message', sender);
-      msg.textContent = text;
-      chatBox.appendChild(msg);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
+    const msg = document.createElement('div');
+    msg.classList.add('message', sender);
+    msg.textContent = text;
+    chatBox.appendChild(msg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    return msg; // This allows us to update the "Thinking..." text later
+}
 
     async function sendMessage() {
-      const text = userInput.value.trim();
-      if (!text) return;
-      addMessage(text, 'user');
-      userInput.value = '';
-      addMessage('Thinking...', 'ai');
-      try {
+    const text = userInput.value.trim();
+    if (!text) return;
+    
+    addMessage(text, 'user');
+    userInput.value = '';
+    
+    // We store this specific div in a variable called aiMsgDiv
+    const aiMsgDiv = addMessage('Thinking...', 'ai'); 
+
+    try {
         const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text })
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text })
         });
+        
         const data = await res.json();
-        chatBox.lastChild.textContent = data.reply;
-      } catch {
-        chatBox.lastChild.textContent = data.reply || data.error || 'No response';
-      }
+        
+        // Now we update ONLY that specific "Thinking..." bubble
+        aiMsgDiv.textContent = data.reply || data.error || 'No response';
+    } catch (err) {
+        aiMsgDiv.textContent = 'Error connecting to server.';
     }
+}
 
     sendBtn.addEventListener('click', sendMessage);
     userInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
