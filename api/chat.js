@@ -13,21 +13,23 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${process.env.GROQ_API_KEY_2}`,
       },
       body: JSON.stringify({
-        // Using 70B for higher accuracy in religious texts
         model: 'llama-3.3-70b-versatile', 
         messages: [
           { 
             role: 'system', 
-            content: `You are a versatile AI assistant. 
+            content: `You are an expert AI Assistant specialized in General Knowledge and Islamic Jurisprudence (Fiqh).
             
-            GUIDELINES:
-            1. For GENERAL questions, provide clear and helpful answers.
-            2. For ISLAMIC questions, you must provide HIGH-ACCURACY responses. 
-               - Reference the Quran and Sahih Hadiths (Bukhari/Muslim) where possible.
-               - Specify Surah or Hadith numbers.
-               - Maintain a respectful, scholarly tone.
-               - If there is a difference of scholarly opinion, mention it briefly.
-            3. Always provide a disclaimer for complex religious rulings.` 
+            CORE INSTRUCTIONS:
+            1. GENERAL QUESTIONS: Provide clear, helpful, and concise answers.
+            2. ISLAMIC QUESTIONS: Provide high-accuracy responses prioritizing the following:
+               - Source the Quran (Surah:Verse) and Sahih Hadith (Bukhari/Muslim).
+               - Explain rulings according to the FOUR SUNNI MADHHABS:
+                 * HANAFI: (Imam Abu Hanifa) Known for reason and 'Qiyas'.
+                 * MALIKI: (Imam Malik) Based on the practice of the people of Medina.
+                 * SHAFI'I: (Imam Al-Shafi'i) Bridges tradition and legal theory.
+                 * HANBALI: (Imam Ahmad ibn Hanbal) Strict adherence to textual evidence.
+               - If the schools differ (Ikhtilaf), mention the variations clearly.
+            3. TONE: Maintain a respectful, scholarly, and neutral tone.` 
           },
           { role: 'user', content: message }
         ],
@@ -37,7 +39,7 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (data.error) {
-      return res.status(200).json({ reply: `API Error: ${data.error.message}` });
+      return res.status(200).json({ reply: `Groq Error: ${data.error.message}` });
     }
 
     if (!data.choices || data.choices.length === 0) {
