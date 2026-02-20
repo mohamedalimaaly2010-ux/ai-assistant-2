@@ -6,10 +6,10 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        // Changed from GROQ_API_KEY to GROQ_API_KEY_2
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY_2}`, 
       },
       body: JSON.stringify({
-        // Updated to a supported 2026 model
         model: 'llama-3.1-8b-instant', 
         messages: [
           { role: 'system', content: 'You are a helpful assistant.' },
@@ -20,12 +20,10 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    // Catch API errors (like Deprecated Model or Invalid Key)
     if (data.error) {
       return res.status(200).json({ reply: `Groq API Error: ${data.error.message}` });
     }
 
-    // Safely check for choices before accessing index 0
     if (!data.choices || data.choices.length === 0) {
       return res.status(200).json({ reply: "The API returned an empty response." });
     }
