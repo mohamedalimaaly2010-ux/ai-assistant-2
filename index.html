@@ -3,60 +3,83 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bilingual Islamic AI</title>
+  <title>Al-Murshid Islamic Portal</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f0f0f; color: #fff; height: 100vh; display: flex; flex-direction: column; }
-    header { background: #1a1a2e; padding: 20px; text-align: center; color: #7c83fd; font-size: 22px; font-weight: bold; border-bottom: 2px solid #2a2a3e; }
+    :root { --primary: #1a1a2e; --accent: #7c83fd; --bg: #0f0f0f; --text: #fff; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; }
+    nav { background: var(--primary); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2a2a3e; }
+    .logo { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
+    
+    /* Topics Bar */
+    .topics-bar { background: #161625; padding: 10px; display: flex; justify-content: center; gap: 15px; overflow-x: auto; font-size: 0.85rem; }
+    .topic-tag { padding: 5px 12px; border: 1px solid #333; border-radius: 20px; color: #ccc; white-space: nowrap; }
+
     #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-    /* This rule helps Arabic look correct */
-    .message { max-width: 85%; padding: 14px 18px; border-radius: 20px; line-height: 1.7; font-size: 16px; word-wrap: break-word; unicode-bidi: plaintext; text-align: start; }
-    .user { background: #7c83fd; align-self: flex-end; border-bottom-right-radius: 4px; }
-    .ai { background: #1e1e2e; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #333; }
-    #input-area { display: flex; padding: 20px; background: #1a1a2e; gap: 10px; border-top: 1px solid #2a2a3e; }
-    #user-input { flex: 1; padding: 14px 22px; border-radius: 30px; border: 1px solid #333; background: #2a2a3e; color: #fff; font-size: 16px; outline: none; }
-    #send-btn { background: #7c83fd; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; color: #white; font-size: 20px; }
+    .message { max-width: 80%; padding: 15px; border-radius: 15px; line-height: 1.6; unicode-bidi: plaintext; text-align: start; }
+    .user { background: var(--accent); align-self: flex-end; border-bottom-right-radius: 2px; }
+    .ai { background: #1e1e2e; align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #333; }
+
+    .input-wrapper { background: var(--primary); padding: 20px; border-top: 1px solid #2a2a3e; }
+    .input-box { max-width: 900px; margin: 0 auto; display: flex; gap: 10px; }
+    input { flex: 1; padding: 15px 25px; border-radius: 30px; border: 1px solid #333; background: #2a2a3e; color: white; outline: none; }
+    button { background: var(--accent); border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; color: white; font-size: 1.2rem; }
   </style>
 </head>
 <body>
-  <header>🌙 Bilingual Scholar AI</header>
+
+  <nav><div class="logo">🌙 Al-Murshid AI</div></nav>
+  
+  <div class="topics-bar">
+    <span class="topic-tag">Quran & Hadith</span>
+    <span class="topic-tag">Prophetic Seerah</span>
+    <span class="topic-tag">Lives of Sahaba</span>
+    <span class="topic-tag">4 Madhhabs</span>
+  </div>
+
   <div id="chat-box">
-    <div class="message ai">Assalamu Alaikum! I am ready to answer in English or Arabic.<br>السلام عليكم! أنا جاهز للإجابة باللغة العربية أو الإنجليزية.</div>
+    <div class="message ai">Assalamu Alaikum! Ask me about the Prophet's (ﷺ) life, his companions, or any Islamic ruling.<br>السلام عليكم! اسألني عن سيرة النبي ﷺ، أو أصحابه، أو أي حكم شرعي.</div>
   </div>
-  <div id="input-area">
-    <input id="user-input" type="text" placeholder="Type here... اكتب هنا..." autocomplete="off" />
-    <button id="send-btn">➤</button>
+
+  <div class="input-wrapper">
+    <div class="input-box">
+      <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off">
+      <button id="send-btn">➤</button>
+    </div>
   </div>
+
   <script>
     const chatBox = document.getElementById('chat-box');
     const userInput = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
+
     function addMessage(text, sender) {
-        const msg = document.createElement('div');
-        msg.classList.add('message', sender);
-        msg.textContent = text;
-        chatBox.appendChild(msg);
-        chatBox.scrollTop = chatBox.scrollHeight;
-        return msg;
+      const msg = document.createElement('div');
+      msg.className = `message ${sender}`;
+      msg.textContent = text;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      return msg;
     }
+
     async function sendMessage() {
-        const text = userInput.value.trim();
-        if (!text) return;
-        addMessage(text, 'user');
-        userInput.value = '';
-        const aiMsgDiv = addMessage('...', 'ai');
-        try {
-            const res = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text })
-            });
-            const data = await res.json();
-            aiMsgDiv.textContent = data.reply || data.error;
-        } catch (err) { aiMsgDiv.textContent = 'Error connection.'; }
+      const text = userInput.value.trim();
+      if (!text) return;
+      addMessage(text, 'user');
+      userInput.value = '';
+      const aiMsg = addMessage('...', 'ai');
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text })
+        });
+        const data = await res.json();
+        aiMsg.textContent = data.reply || "Error fetching answer.";
+      } catch (err) { aiMsg.textContent = "Connection error."; }
     }
-    sendBtn.addEventListener('click', sendMessage);
-    userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
+    sendBtn.onclick = sendMessage;
+    userInput.onkeydown = (e) => { if(e.key === 'Enter') sendMessage(); };
   </script>
 </body>
 </html>
