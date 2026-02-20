@@ -15,25 +15,29 @@ export default async function handler(req, res) {
         messages: [
           { 
             role: 'system', 
-            content: `CRITICAL INSTRUCTION: You are a literalist Islamic Research Assistant. 
-            1. DO NOT guess. If a Hadith or Verse is not 100% certain in your database, say "I do not have the specific text for this, please consult a local Mufti."
-            2. SOURCES: Use ONLY the Quran, Sahih Bukhari, Sahih Muslim, and the established views of the 4 Imams (Hanafi, Maliki, Shafi'i, Hanbali).
-            3. NO WEAK HADITH: Do not cite any Hadith labeled as Da'if or Mawdu'.
-            4. BIOGRAPHY: For Seerah and Sahaba, stick to 'Ar-Raheeq Al-Makhtum' and 'Siyar A'lam al-Nubala'.
-            5. FORMAT: Always state the source first before the explanation.
-            6. LANGUAGE: Answer in the language the user used.` 
+            content: `STRICT FACTUAL MODE:
+            - PRIMARY SOURCES ONLY: Holy Quran and Sahih al-Bukhari/Muslim. 
+            - SEERAH & SAHABA: Use only Ar-Raheeq Al-Makhtum and Siyar A'lam al-Nubala.
+            - LEGAL: Use only the majority views of the 4 Sunni Imams.
+            
+            STRICT RULES:
+            1. If you are not 100% sure of a Hadith number or Verse, do NOT provide it.
+            2. Never invent or "hallucinate" names, dates, or rulings. 
+            3. If the user asks for something outside these trusted sources, say: "I can only provide information from verified Sahih sources."
+            4. Always provide the Arabic text of the Quranic Verse or Hadith alongside the translation.
+            5. Do not provide personal interpretations.` 
           },
           { role: 'user', content: message }
         ],
-        temperature: 0, // This is the most important change for accuracy!
-        max_tokens: 1024,
-        top_p: 1,
+        temperature: 0.0, // Absolute precision
+        top_p: 0.1,      // Only considers the most likely words
+        stream: false
       }),
     });
 
     const data = await response.json();
     res.status(200).json({ reply: data.choices[0].message.content });
   } catch (err) {
-    res.status(500).json({ error: "Scholarly database connection error." });
+    res.status(500).json({ error: "Scholarly API connection failed." });
   }
 }
