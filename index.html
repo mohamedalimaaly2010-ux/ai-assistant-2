@@ -54,7 +54,7 @@
         const data = await res.json();
         chatBox.lastChild.textContent = data.reply;
       } catch {
-        chatBox.lastChild.textContent = 'Error: Could not reach AI.';
+        chatBox.lastChild.textContent = data.reply || data.error || 'No response';
       }
     }
 
