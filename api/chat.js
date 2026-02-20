@@ -1,6 +1,19 @@
 export default async function handler(req, res) {
   try {
-    const message = req.body.message;
+    let message;
+    
+    if (typeof req.body === 'string') {
+      message = JSON.parse(req.body).message;
+    } else if (typeof req.body === 'object') {
+      message = req.body.message;
+    } else {
+      const chunks = [];
+      for await (const chunk of req) {
+        chunks.push(chunk);
+      }
+      const raw = Buffer.concat(chunks).toString();
+      message = JSON.parse(raw).message;
+    }
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -23,7 +36,3 @@ export default async function handler(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
-
-export const config = {
-  api: { bodyParser: true }
-};
