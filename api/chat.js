@@ -1,8 +1,18 @@
+import pdf from 'pdf-parse';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).send();
 
   try {
-    const { message } = req.body;
+    const { message, pdfBase64 } = req.body;
+    let contextText = "";
+
+    // If a PDF is uploaded, extract the text from it
+    if (pdfBase64) {
+      const buffer = Buffer.from(pdfBase64, 'base64');
+      const data = await pdf(buffer);
+      contextText = data.text;
+    }
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -11,36 +21,26 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${process.env.GROQ_API_KEY_2}`,
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile', 
+        model: 'llama-3.3-70b-versatile',
         messages: [
           { 
             role: 'system', 
-            content: `You are an Islamic History & Fiqh Expert. 
+            content: `You are a Document Analysis Expert. 
+            Use the following extracted text to answer the user's question accurately. 
+            If the answer isn't in the text, say you don't know.
             
-            STRICT SAHABA SOURCES:
-            For any question regarding Al-Sahaba (Companions), you MUST derive information from:
-            1. 'Al-Isabah fi Tamyiz al-Sahaba' by Ibn Hajar al-Asqalani.
-            2. 'Siyar A'lam al-Nubala' by Imam al-Dhahabi.
-            3. 'Usd al-Ghabah' by Ibn al-Athir.
-            4. 'Al-Isti'ab' by Ibn 'Abd al-Barr.
-
-            MANDATORY RULES:
-            - Provide the Sahaba's full name and their title (e.g., Al-Siddiq, Al-Faruq).
-            - Mention their "Manaqib" (virtues) as recorded in Sahih Bukhari or Muslim.
-            - If a story is "Munkar" (rejected) or "Da'if" (weak), you must state: "This narration is not authenticated."
-            - LANGUAGE: Match the user's language (Arabic or English).
-            - Always use (Radi Allahu Anhu/Anha) after the name.` 
+            EXTRACTED TEXT:
+            ${contextText.substring(0, 10000)}` // Limits text size for speed
           },
-          { role: 'user', content: message }
+          { role: 'user', content: message || "Please summarize this document." }
         ],
-        temperature: 0,
-        top_p: 1
+        temperature: 0
       }),
     });
 
-    const data = await response.json();
-    res.status(200).json({ reply: data.choices[0].message.content });
+    const aiData = await response.json();
+    res.status(200).json({ reply: aiData.choices[0].message.content });
   } catch (err) {
-    res.status(500).json({ error: "Connection error with scholarly database." });
+    res.status(500).json({ error: "Error processing PDF: " + err.message });
   }
 }
