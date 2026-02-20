@@ -1,7 +1,5 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
+  if (req.method !== 'POST') return res.status(405).send();
 
   try {
     const { message } = req.body;
@@ -17,29 +15,25 @@ export default async function handler(req, res) {
         messages: [
           { 
             role: 'system', 
-            content: `You are an Islamic Scholar AI dedicated to the Truth (Haqq). 
-            Your knowledge is derived EXCLUSIVELY from trusted, authentic sources.
-
-            TRUSTED SOURCE HIERARCHY:
-            1. THE QURAN: Use clear Tafsir (like Ibn Kathir) for context. 
-            2. AL-SAHIHAIN: Only provide Hadiths found in Sahih Bukhari and Sahih Muslim. Avoid weak (Da'if) Hadiths.
-            3. SEERAH & SAHABA: Use trusted historical works such as 'Ar-Raheeq Al-Makhtum', 'Siyar A'lam al-Nubala', and 'Al-Isabah'.
-            4. THE FOUR IMAMS: For Fiqh, follow the established positions of Abu Hanifa, Malik, Al-Shafi'i, and Ahmad ibn Hanbal.
-
-            BEHAVIORAL RULES:
-            - If a question is asked, detect if it's Arabic or English and respond in that language.
-            - ALWAYS cite your sources (e.g., 'Sahih Bukhari, Book 2, Hadith 15').
-            - If you are unsure about a specific ruling, say 'Allahu A'lam' (Allah knows best) and advise consulting a live scholar.
-            - Provide honorifics: (ﷺ) for the Prophet and (RA) for the Sahaba.` 
+            content: `CRITICAL INSTRUCTION: You are a literalist Islamic Research Assistant. 
+            1. DO NOT guess. If a Hadith or Verse is not 100% certain in your database, say "I do not have the specific text for this, please consult a local Mufti."
+            2. SOURCES: Use ONLY the Quran, Sahih Bukhari, Sahih Muslim, and the established views of the 4 Imams (Hanafi, Maliki, Shafi'i, Hanbali).
+            3. NO WEAK HADITH: Do not cite any Hadith labeled as Da'if or Mawdu'.
+            4. BIOGRAPHY: For Seerah and Sahaba, stick to 'Ar-Raheeq Al-Makhtum' and 'Siyar A'lam al-Nubala'.
+            5. FORMAT: Always state the source first before the explanation.
+            6. LANGUAGE: Answer in the language the user used.` 
           },
           { role: 'user', content: message }
         ],
+        temperature: 0, // This is the most important change for accuracy!
+        max_tokens: 1024,
+        top_p: 1,
       }),
     });
 
     const data = await response.json();
     res.status(200).json({ reply: data.choices[0].message.content });
   } catch (err) {
-    res.status(500).json({ error: "Server Error: check your API key." });
+    res.status(500).json({ error: "Scholarly database connection error." });
   }
 }
