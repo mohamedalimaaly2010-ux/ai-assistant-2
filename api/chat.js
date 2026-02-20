@@ -6,10 +6,11 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, // Double check this name matches Vercel
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'llama3-8b-8192',
+        // Updated to a supported 2026 model
+        model: 'llama-3.1-8b-instant', 
         messages: [
           { role: 'system', content: 'You are a helpful assistant.' },
           { role: 'user', content: message }
@@ -19,18 +20,18 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    // SAFETY CHECK: If Groq returns an error (like Invalid API Key)
+    // Catch API errors (like Deprecated Model or Invalid Key)
     if (data.error) {
-      return res.status(200).json({ reply: `Groq Error: ${data.error.message}` });
+      return res.status(200).json({ reply: `Groq API Error: ${data.error.message}` });
     }
 
-    // SAFETY CHECK: Ensure choices exists before reading [0]
+    // Safely check for choices before accessing index 0
     if (!data.choices || data.choices.length === 0) {
-      return res.status(200).json({ reply: "API returned successfully but with no results." });
+      return res.status(200).json({ reply: "The API returned an empty response." });
     }
 
     res.status(200).json({ reply: data.choices[0].message.content });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: `Server Crash: ${err.message}` });
   }
 }
