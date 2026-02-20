@@ -6,10 +6,12 @@
       "maxDuration": 10
     }
   },
-  "routes": [
+  "headers": [
     {
-      "src": "/api/chat",
-      "dest": "/api/chat.js"
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json" }
+      ]
     }
   ]
 }
