@@ -1,7 +1,14 @@
 const https = require('https');
 
 module.exports = async function handler(req, res) {
-  const { message } = req.body;
+  let bodyData = '';
+  await new Promise((resolve) => {
+    req.on('data', chunk => bodyData += chunk);
+    req.on('end', resolve);
+  });
+
+  const { message } = JSON.parse(bodyData);
+
   const body = JSON.stringify({
     model: 'llama3-8b-8192',
     messages: [
@@ -9,6 +16,7 @@ module.exports = async function handler(req, res) {
       { role: 'user', content: message }
     ]
   });
+
   const options = {
     hostname: 'api.groq.com',
     path: '/openai/v1/chat/completions',
@@ -19,6 +27,7 @@ module.exports = async function handler(req, res) {
       'Content-Length': Buffer.byteLength(body)
     }
   };
+
   const result = await new Promise((resolve, reject) => {
     const r = https.request(options, (res2) => {
       let data = '';
@@ -29,5 +38,6 @@ module.exports = async function handler(req, res) {
     r.write(body);
     r.end();
   });
+
   res.status(200).json({ reply: result.choices[0].message.content });
 };
